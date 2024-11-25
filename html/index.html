@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Cine</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" defer></script>
+    <script src="/js/peliculas.js" defer></script>
+    <script src="/js/salas.js" defer></script>
+    <script src="/js/funciones.js" defer></script>
+    <script src="/js/nav.js" defer></script>
+</head>
+
+<body class="bg-light">
+    <div id="alertaContenedor"></div>
+    <div class="container py-5">
+        <h1 class="text-center mb-4">Sistema de Cine</h1>
+
+        <!-- Navegación -->
+        <ul class="nav nav-tabs mb-4" id="navTabs">
+            <li class="nav-item">
+                <a class="nav-link active" id="tabPeliculas" href="#seccionPeliculas">Películas</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="tabSalas" href="#seccionSalas">Salas</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="tabFunciones" href="#seccionFunciones">Funciones</a>
+            </li>
+        </ul>
+
+        <!-- Sección: Películas -->
+        <div id="seccionPeliculas" class="seccion">
+            <h3>Gestión de Películas</h3>
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">Formulario de Películas</div>
+                <div class="card-body">
+                    <form id="formPelicula" class="row g-3">
+                        <input type="hidden" id="PeliculaId">
+
+                        <div class="col-md-6">
+                            <label for="PeliculaTitulo" class="form-label">Título</label>
+                            <input type="text" id="PeliculaTitulo" class="form-control" required>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="PeliculaGenero" class="form-label">Género</label>
+                            <input type="text" id="PeliculaGenero" class="form-control" required>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="PeliculaDuracion" class="form-label">Duración (minutos)</label>
+                            <input type="number" id="PeliculaDuracion" class="form-control" required>
+                        </div>
+
+                        <div class="col-md-12 d-flex justify-content-end">
+                            <button type="button" id="btnAgregarPelicula" class="btn btn-success me-2">Agregar</button>
+                            <button type="button" id="btnEditarPelicula" class="btn btn-warning me-2" disabled>Editar</button>
+                            <button type="button" id="btnEliminarPelicula" class="btn btn-danger me-2"
+                                disabled>Eliminar</button>
+                            <button type="reset" id="btnLimpiarPelicula" class="btn btn-secondary">Limpiar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header bg-primary text-white">Listado de Películas</div>
+                <div class="card-body">
+                    <table class="table table-striped table-bordered text-center" id="tablaPeliculas">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Título</th>
+                                <th>Género</th>
+                                <th>Duración (minutos)</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección: Salas -->
+        <div id="seccionSalas" class="seccion d-none">
+            <h3>Gestión de Salas</h3>
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">Formulario de Salas</div>
+                <div class="card-body">
+                    <form id="formSala" class="row g-3">
+                        <input type="hidden" id="SalaId">
+
+                        <div class="col-md-6">
+                            <label for="SalaNombre" class="form-label">Nombre</label>
+                            <input type="text" id="SalaNombre" class="form-control" required>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="SalaCapacidad" class="form-label">Capacidad</label>
+                            <input type="number" id="SalaCapacidad" class="form-control" required>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="SalaTipo" class="form-label">Tipo</label>
+                            <input type="text" id="SalaTipo" class="form-control" required>
+                        </div>
+
+                        <div class="col-md-12 d-flex justify-content-end">
+                            <button type="button" id="btnAgregarSala" class="btn btn-success me-2">Agregar</button>
+                            <button type="button" id="btnEditarSala" class="btn btn-warning me-2"
+                                disabled>Editar</button>
+                            <button type="button" id="btnEliminarSala" class="btn btn-danger me-2"
+                                disabled>Eliminar</button>
+                            <button type="reset" id="btnLimpiarSala" class="btn btn-secondary">Limpiar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header bg-primary text-white">Listado de Salas</div>
+                <div class="card-body">
+                    <table class="table table-striped table-bordered text-center" id="tablaSalas">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Capacidad</th>
+                                <th>Tipo</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección: Funciones -->
+        <div id="seccionFunciones" class="seccion d-none">
+            <h3>Gestión de Funciones</h3>
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">Formulario de Funciones</div>
+                <div class="card-body">
+                    <form id="formFuncion" class="row g-3">
+                        <input type="hidden" id="FuncionId">
+
+                        <div class="col-md-6">
+                            <label for="FuncionPelicula" class="form-label">Película</label>
+                            <select id="FuncionPelicula" class="form-select" required></select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="FuncionSala" class="form-label">Sala</label>
+                            <select id="FuncionSala" class="form-select" required></select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="FuncionFecha" class="form-label">Fecha</label>
+                            <input type="date" id="FuncionFecha" class="form-control" required>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="FuncionHora" class="form-label">Hora</label>
+                            <input type="time" id="FuncionHora" class="form-control" required>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="FuncionPrecio" class="form-label">Precio</label>
+                            <input type="number" step="0.01" id="FuncionPrecio" class="form-control" required>
+                        </div>
+
+                        <div class="col-md-12 d-flex justify-content-end">
+                            <button type="button" id="btnAgregarFuncion" class="btn btn-success me-2">Agregar</button>
+                            <button type="button" id="btnEditarFuncion" class="btn btn-warning me-2"
+                                disabled>Editar</button>
+                            <button type="button" id="btnEliminarFuncion" class="btn btn-danger me-2"
+                                disabled>Eliminar</button>
+                            <button type="reset" id="btnLimpiarFuncion" class="btn btn-secondary">Limpiar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header bg-primary text-white">Listado de Funciones</div>
+                <div class="card-body">
+                    <table class="table table-striped table-bordered text-center" id="tablaFunciones">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Película</th>
+                                <th>Sala</th>
+                                <th>Fecha</th>
+                                <th>Hora</th>
+                                <th>Precio</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
