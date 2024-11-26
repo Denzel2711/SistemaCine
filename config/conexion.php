@@ -3,19 +3,29 @@ class Conectar
 {
     protected $conexion_bd;
 
-    protected function conectar_bd()
+    public function conectar_bd()
     {
         try {
-            $conexion = $this->conexion_bd = new PDO("mysql:host=localhost;dbname=sistema_cine", "root", "");
-            return $conexion;
-        } catch (Exception $e) {
-            print "Error en la base de datos: " . $e->getMessage() . "<br/>";
-            die();
+            $host = "sistemacinedb.mysql.database.azure.com";
+            $dbname = "sistema_cine";
+            $username = "adminuser@sistemacinedb";
+            $password = "Admin123!";
+
+            $this->conexion_bd = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $username, $password);
+            $this->conexion_bd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+            return $this->conexion_bd;
+        } catch (PDOException $e) {
+            die("Error en la base de datos: " . $e->getMessage());
         }
     }
 
     public function establecer_codificacion()
     {
-        return $this->conexion_bd->query("SET NAMES 'utf8'");
+        if ($this->conexion_bd) {
+            return $this->conexion_bd->exec("SET NAMES 'utf8'");
+        }
+        return false;
     }
 }
+?>
