@@ -6,43 +6,51 @@ document.addEventListener("DOMContentLoaded", () => {
     const btnEliminar = document.getElementById("btnEliminarFuncion");
     const btnLimpiar = document.getElementById("btnLimpiarFuncion");
 
-    const apiUrl = "http://localhost/SistemaCine/controller/api_funciones.php";
+    const baseUrl = "https://SistemaCineAPI.azurewebsites.net/controller";
 
     // Cargar películas y salas en los selects
     const cargarSelects = async () => {
-        const peliculasResponse = await fetch("http://localhost/SistemaCine/controller/api_peliculas.php?op=Listar");
-        const peliculas = await peliculasResponse.json();
-        const peliculaSelect = document.getElementById("FuncionPelicula");
-        peliculaSelect.innerHTML = peliculas
-            .map((p) => `<option value="${p.Id}">${p.Titulo}</option>`)
-            .join("");
+        try {
+            const peliculasResponse = await fetch(`${baseUrl}/api_peliculas.php?op=Listar`);
+            const peliculas = await peliculasResponse.json();
+            const peliculaSelect = document.getElementById("FuncionPelicula");
+            peliculaSelect.innerHTML = peliculas
+                .map((p) => `<option value="${p.Id}">${p.Titulo}</option>`)
+                .join("");
 
-        const salasResponse = await fetch("http://localhost/SistemaCine/controller/api_salas.php?op=Listar");
-        const salas = await salasResponse.json();
-        const salaSelect = document.getElementById("FuncionSala");
-        salaSelect.innerHTML = salas
-            .map((s) => `<option value="${s.Id}">${s.Nombre}</option>`)
-            .join("");
+            const salasResponse = await fetch(`${baseUrl}/api_salas.php?op=Listar`);
+            const salas = await salasResponse.json();
+            const salaSelect = document.getElementById("FuncionSala");
+            salaSelect.innerHTML = salas
+                .map((s) => `<option value="${s.Id}">${s.Nombre}</option>`)
+                .join("");
+        } catch (error) {
+            console.error("Error al cargar los selects:", error);
+        }
     };
 
     // Listar funciones
     const listarFunciones = async () => {
-        const response = await fetch(`${apiUrl}?op=Listar`);
-        const funciones = await response.json();
-        tabla.innerHTML = funciones
-            .map(
-                (f) => `
-            <tr data-id="${f.Id}">
-                <td>${f.Pelicula}</td>
-                <td>${f.Sala}</td>
-                <td>${f.Fecha}</td>
-                <td>${f.Hora}</td>
-                <td>${f.Precio}</td>
-            </tr>
-        `
-            )
-            .join("");
-        agregarEventosTabla();
+        try {
+            const response = await fetch(`${baseUrl}/api_funciones.php?op=Listar`);
+            const funciones = await response.json();
+            tabla.innerHTML = funciones
+                .map(
+                    (f) => `
+                <tr data-id="${f.Id}">
+                    <td>${f.Pelicula}</td>
+                    <td>${f.Sala}</td>
+                    <td>${f.Fecha}</td>
+                    <td>${f.Hora}</td>
+                    <td>${f.Precio}</td>
+                </tr>
+            `
+                )
+                .join("");
+            agregarEventosTabla();
+        } catch (error) {
+            console.error("Error al listar funciones:", error);
+        }
     };
 
     // Manejar clic en la tabla para seleccionar un registro
@@ -67,19 +75,13 @@ document.addEventListener("DOMContentLoaded", () => {
                     const peliculaSelect = form.FuncionPelicula;
                     const salaSelect = form.FuncionSala;
 
-                    const peliculaOption = Array.from(peliculaSelect.options).find(
+                    peliculaSelect.value = Array.from(peliculaSelect.options).find(
                         (option) => option.textContent === pelicula.textContent
-                    );
-                    if (peliculaOption) {
-                        peliculaSelect.value = peliculaOption.value;
-                    }
+                    )?.value || "";
 
-                    const salaOption = Array.from(salaSelect.options).find(
+                    salaSelect.value = Array.from(salaSelect.options).find(
                         (option) => option.textContent === sala.textContent
-                    );
-                    if (salaOption) {
-                        salaSelect.value = salaOption.value;
-                    }
+                    )?.value || "";
                 });
 
                 // Habilitar botones de editar y eliminar, deshabilitar agregar
@@ -99,13 +101,17 @@ document.addEventListener("DOMContentLoaded", () => {
             Hora: form.FuncionHora.value,
             Precio: form.FuncionPrecio.value,
         };
-        await fetch(`${apiUrl}?op=Insertar`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(data),
-        });
-        form.reset();
-        listarFunciones();
+        try {
+            await fetch(`${baseUrl}/api_funciones.php?op=Insertar`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data),
+            });
+            form.reset();
+            listarFunciones();
+        } catch (error) {
+            console.error("Error al agregar función:", error);
+        }
     });
 
     // Editar función
@@ -118,31 +124,39 @@ document.addEventListener("DOMContentLoaded", () => {
             Hora: form.FuncionHora.value,
             Precio: form.FuncionPrecio.value,
         };
-        await fetch(`${apiUrl}?op=Actualizar`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(data),
-        });
-        form.reset();
-        btnEditar.disabled = true;
-        btnEliminar.disabled = true;
-        btnAgregar.disabled = false;
-        listarFunciones();
+        try {
+            await fetch(`${baseUrl}/api_funciones.php?op=Actualizar`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data),
+            });
+            form.reset();
+            btnEditar.disabled = true;
+            btnEliminar.disabled = true;
+            btnAgregar.disabled = false;
+            listarFunciones();
+        } catch (error) {
+            console.error("Error al editar función:", error);
+        }
     });
 
     // Eliminar función
     btnEliminar.addEventListener("click", async () => {
         const data = { Id: form.FuncionId.value };
-        await fetch(`${apiUrl}?op=Eliminar`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(data),
-        });
-        form.reset();
-        btnEditar.disabled = true;
-        btnEliminar.disabled = true;
-        btnAgregar.disabled = false;
-        listarFunciones();
+        try {
+            await fetch(`${baseUrl}/api_funciones.php?op=Eliminar`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data),
+            });
+            form.reset();
+            btnEditar.disabled = true;
+            btnEliminar.disabled = true;
+            btnAgregar.disabled = false;
+            listarFunciones();
+        } catch (error) {
+            console.error("Error al eliminar función:", error);
+        }
     });
 
     // Limpiar formulario
@@ -154,6 +168,7 @@ document.addEventListener("DOMContentLoaded", () => {
         tabla.querySelectorAll("tr").forEach((fila) => fila.classList.remove("selected"));
     });
 
+    // Inicialización
     cargarSelects();
     listarFunciones();
 });
