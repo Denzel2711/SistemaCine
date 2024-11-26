@@ -2,7 +2,12 @@
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Authorization");
+header("Access-Control-Allow-Credentials: true");
 header("Content-Type: application/json");
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200); // Responde con 200 OK para las solicitudes OPTIONS
+    exit;
+}
 require_once("../config/conexion.php");
 require_once("../models/funcion.php");
 
