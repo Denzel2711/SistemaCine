@@ -6,7 +6,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const btnEliminar = document.getElementById("btnEliminarSala");
     const btnLimpiar = document.getElementById("btnLimpiarSala");
 
-    const apiUrl = "http://localhost/SistemaCine/controller/api_salas.php";
+    const apiUrl = "https://sistemacineapi.azurewebsites.net/controller/api_salas.php";
 
     // Listar salas
     const listarSalas = async () => {
