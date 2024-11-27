@@ -5,53 +5,49 @@ document.addEventListener("DOMContentLoaded", () => {
     const btnEditar = document.getElementById("btnEditarFuncion");
     const btnEliminar = document.getElementById("btnEliminarFuncion");
     const btnLimpiar = document.getElementById("btnLimpiarFuncion");
+    const filtro = document.getElementById("filtroFunciones");
 
     const baseUrl = "https://SistemaCineAPI.azurewebsites.net/controller";
-
-    // Cargar películas y salas en los selects
-    const cargarSelects = async () => {
-        try {
-            const peliculasResponse = await fetch(`${baseUrl}/api_peliculas.php?op=Listar`);
-            const peliculas = await peliculasResponse.json();
-            const peliculaSelect = document.getElementById("FuncionPelicula");
-            peliculaSelect.innerHTML = peliculas
-                .map((p) => `<option value="${p.Id}">${p.Titulo}</option>`)
-                .join("");
-
-            const salasResponse = await fetch(`${baseUrl}/api_salas.php?op=Listar`);
-            const salas = await salasResponse.json();
-            const salaSelect = document.getElementById("FuncionSala");
-            salaSelect.innerHTML = salas
-                .map((s) => `<option value="${s.Id}">${s.Nombre}</option>`)
-                .join("");
-        } catch (error) {
-            console.error("Error al cargar los selects:", error);
-        }
-    };
+    let funciones = [];
 
     // Listar funciones
     const listarFunciones = async () => {
-        try {
-            const response = await fetch(`${baseUrl}/api_funciones.php?op=Listar`);
-            const funciones = await response.json();
-            tabla.innerHTML = funciones
-                .map(
-                    (f) => `
-                <tr data-id="${f.Id}">
-                    <td>${f.Pelicula}</td>
-                    <td>${f.Sala}</td>
-                    <td>${f.Fecha}</td>
-                    <td>${f.Hora}</td>
-                    <td>${f.Precio}</td>
-                </tr>
-            `
-                )
-                .join("");
-            agregarEventosTabla();
-        } catch (error) {
-            console.error("Error al listar funciones:", error);
-        }
+        const response = await fetch(`${baseUrl}/api_funciones.php?op=Listar`);
+        funciones = await response.json();
+        mostrarFunciones(funciones);
     };
+
+    // Mostrar funciones en la tabla
+    const mostrarFunciones = (funcionesFiltradas) => {
+        tabla.innerHTML = funcionesFiltradas
+            .map(
+                (f) => `
+            <tr data-id="${f.Id}">
+                <td>${f.Pelicula}</td>
+                <td>${f.Sala}</td>
+                <td>${f.Fecha}</td>
+                <td>${f.Hora}</td>
+                <td>${f.Precio}</td>
+            </tr>
+        `
+            )
+            .join("");
+        agregarEventosTabla();
+    };
+
+    // Filtrar funciones dinámicamente
+    filtro.addEventListener("input", () => {
+        const texto = filtro.value.toLowerCase();
+        const funcionesFiltradas = funciones.filter(
+            (f) =>
+                f.Pelicula.toLowerCase().includes(texto) ||
+                f.Sala.toLowerCase().includes(texto) ||
+                f.Fecha.includes(texto) ||
+                f.Hora.includes(texto) ||
+                f.Precio.toString().includes(texto)
+        );
+        mostrarFunciones(funcionesFiltradas);
+    });
 
     // Manejar clic en la tabla para seleccionar un registro
     const agregarEventosTabla = () => {
@@ -142,20 +138,25 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Eliminar función
     btnEliminar.addEventListener("click", async () => {
-        const data = { Id: form.FuncionId.value };
-        try {
-            await fetch(`${baseUrl}/api_funciones.php?op=Eliminar`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(data),
-            });
-            form.reset();
-            btnEditar.disabled = true;
-            btnEliminar.disabled = true;
-            btnAgregar.disabled = false;
-            listarFunciones();
-        } catch (error) {
-            console.error("Error al eliminar función:", error);
+        const confirmar = confirm("¿Está seguro de que desea eliminar la función seleccionada?");
+        if (confirmar) {
+            const data = {
+                Id: form.FuncionId.value,
+            };
+            try {
+                await fetch(`${baseUrl}/api_funciones.php?op=Eliminar`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(data),
+                });
+                form.reset();
+                btnEditar.disabled = true;
+                btnEliminar.disabled = true;
+                btnAgregar.disabled = false;
+                listarFunciones();
+            } catch (error) {
+                console.error("Error al eliminar función:", error);
+            }
         }
     });
 
