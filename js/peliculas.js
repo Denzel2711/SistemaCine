@@ -1,38 +1,49 @@
 document.addEventListener("DOMContentLoaded", () => {
     const form = document.getElementById("formPelicula");
-    const tabla = document
-        .getElementById("tablaPeliculas")
-        .querySelector("tbody");
+    const tabla = document.getElementById("tablaPeliculas").querySelector("tbody");
     const btnAgregar = document.getElementById("btnAgregarPelicula");
     const btnEditar = document.getElementById("btnEditarPelicula");
     const btnEliminar = document.getElementById("btnEliminarPelicula");
     const btnLimpiar = document.getElementById("btnLimpiarPelicula");
+    const filtro = document.getElementById("filtroPeliculas");
 
     const baseUrl = "https://sistemacineapi.azurewebsites.net/controller/api_peliculas.php";
+    let peliculas = [];
 
-    // Función para listar películas
+    // Listar películas
     const listarPeliculas = async () => {
-        try {
-            const response = await fetch(`${baseUrl}?op=Listar`);
-            if (!response.ok) throw new Error("Error al listar las películas.");
-            const peliculas = await response.json();
-            tabla.innerHTML = peliculas
-                .map(
-                    (p) => `
-                <tr data-id="${p.Id}">
-                    <td>${p.Titulo}</td>
-                    <td>${p.Genero}</td>
-                    <td>${p.Duracion}</td>
-                </tr>
-            `
-                )
-                .join("");
-            agregarEventosTabla();
-        } catch (error) {
-            console.error("Error al listar películas:", error);
-            alert("No se pudieron cargar las películas. Revisa la consola para más detalles.");
-        }
+        const response = await fetch(`${baseUrl}?op=Listar`);
+        peliculas = await response.json();
+        mostrarPeliculas(peliculas);
     };
+
+    // Mostrar películas en la tabla
+    const mostrarPeliculas = (peliculasFiltradas) => {
+        tabla.innerHTML = peliculasFiltradas
+            .map(
+                (p) => `
+            <tr data-id="${p.Id}">
+                <td>${p.Titulo}</td>
+                <td>${p.Genero}</td>
+                <td>${p.Duracion}</td>
+            </tr>
+        `
+            )
+            .join("");
+        agregarEventosTabla();
+    };
+
+    // Filtrar películas dinámicamente
+    filtro.addEventListener("input", () => {
+        const texto = filtro.value.toLowerCase();
+        const peliculasFiltradas = peliculas.filter(
+            (p) =>
+                p.Titulo.toLowerCase().includes(texto) ||
+                p.Genero.toLowerCase().includes(texto) ||
+                p.Duracion.toString().includes(texto)
+        );
+        mostrarPeliculas(peliculasFiltradas);
+    });
 
     // Función para agregar eventos a las filas de la tabla
     const agregarEventosTabla = () => {
@@ -58,30 +69,24 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     };
 
-    // Función para agregar una película
+    // Agregar película
     btnAgregar.addEventListener("click", async () => {
         const data = {
             Titulo: form.PeliculaTitulo.value,
             Genero: form.PeliculaGenero.value,
             Duracion: form.PeliculaDuracion.value,
         };
-
-        try {
-            const response = await fetch(`${baseUrl}?op=Insertar`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(data),
-            });
-            if (!response.ok) throw new Error("Error al agregar la película.");
-            form.reset();
-            listarPeliculas();
-        } catch (error) {
-            console.error("Error al agregar película:", error);
-            alert("No se pudo agregar la película. Revisa la consola para más detalles.");
-        }
+        await fetch(`${baseUrl}?op=Insertar`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data),
+        });
+        form.reset();
+        listarPeliculas();
+        cargarSelects();
     });
 
-    // Función para editar una película
+    // Editar película
     btnEditar.addEventListener("click", async () => {
         const data = {
             Id: form.PeliculaId.value,
@@ -89,54 +94,47 @@ document.addEventListener("DOMContentLoaded", () => {
             Genero: form.PeliculaGenero.value,
             Duracion: form.PeliculaDuracion.value,
         };
-
-        try {
-            const response = await fetch(`${baseUrl}?op=Actualizar`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(data),
-            });
-            if (!response.ok) throw new Error("Error al editar la película.");
-            form.reset();
-            btnEditar.disabled = true;
-            btnEliminar.disabled = true;
-            btnAgregar.disabled = false;
-            listarPeliculas();
-        } catch (error) {
-            console.error("Error al editar película:", error);
-            alert("No se pudo editar la película. Revisa la consola para más detalles.");
-        }
+        await fetch(`${baseUrl}?op=Actualizar`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data),
+        });
+        form.reset();
+        btnEditar.disabled = true;
+        btnEliminar.disabled = true;
+        btnAgregar.disabled = false;
+        listarPeliculas();
+        cargarSelects();
     });
 
-    // Función para eliminar una película
+    // Eliminar película
     btnEliminar.addEventListener("click", async () => {
-        const data = { Id: form.PeliculaId.value };
-
-        try {
-            const response = await fetch(`${baseUrl}?op=Eliminar`, {
+        const confirmar = confirm("¿Estás seguro de que deseas eliminar esta película?");
+        if (confirmar) {
+            const data = {
+                Id: form.PeliculaId.value,
+            };
+            await fetch(`${baseUrl}?op=Eliminar`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(data),
             });
-            if (!response.ok) throw new Error("Error al eliminar la película.");
             form.reset();
             btnEditar.disabled = true;
             btnEliminar.disabled = true;
             btnAgregar.disabled = false;
             listarPeliculas();
-        } catch (error) {
-            console.error("Error al eliminar película:", error);
-            alert("No se pudo eliminar la película. Revisa la consola para más detalles.");
+            cargarSelects();
         }
     });
 
-    // Función para limpiar el formulario
+    // Limpiar formulario
     btnLimpiar.addEventListener("click", () => {
         form.reset();
         btnEditar.disabled = true;
         btnEliminar.disabled = true;
         btnAgregar.disabled = false;
-        tabla.querySelectorAll("tr").forEach((fila) => fila.classList.remove("selected"));
+        tabla.querySelectorAll("tr").forEach((f) => f.classList.remove("selected"));
     });
 
     // Inicialización

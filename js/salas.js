@@ -5,14 +5,21 @@ document.addEventListener("DOMContentLoaded", () => {
     const btnEditar = document.getElementById("btnEditarSala");
     const btnEliminar = document.getElementById("btnEliminarSala");
     const btnLimpiar = document.getElementById("btnLimpiarSala");
+    const filtro = document.getElementById("filtroSalas");
 
-    const apiUrl = "https://sistemacineapi.azurewebsites.net/controller/api_salas.php";
+    const baseUrl = "https://sistemacineapi.azurewebsites.net/controller/api_salas.php";
+    let salas = [];
 
     // Listar salas
     const listarSalas = async () => {
-        const response = await fetch(`${apiUrl}?op=Listar`);
-        const salas = await response.json();
-        tabla.innerHTML = salas
+        const response = await fetch(`${baseUrl}?op=Listar`);
+        salas = await response.json();
+        mostrarSalas(salas);
+    };
+
+    // Mostrar salas en la tabla
+    const mostrarSalas = (salasFiltradas) => {
+        tabla.innerHTML = salasFiltradas
             .map(
                 (s) => `
             <tr data-id="${s.Id}">
@@ -25,6 +32,18 @@ document.addEventListener("DOMContentLoaded", () => {
             .join("");
         agregarEventosTabla();
     };
+
+    // Filtrar salas dinámicamente
+    filtro.addEventListener("input", () => {
+        const texto = filtro.value.toLowerCase();
+        const salasFiltradas = salas.filter(
+            (s) =>
+                s.Nombre.toLowerCase().includes(texto) ||
+                s.Capacidad.toString().includes(texto) ||
+                s.Tipo.toLowerCase().includes(texto)
+        );
+        mostrarSalas(salasFiltradas);
+    });
 
     // Manejar clic en la tabla para seleccionar un registro
     const agregarEventosTabla = () => {
@@ -57,13 +76,14 @@ document.addEventListener("DOMContentLoaded", () => {
             Capacidad: form.SalaCapacidad.value,
             Tipo: form.SalaTipo.value,
         };
-        await fetch(`${apiUrl}?op=Insertar`, {
+        await fetch(`${baseUrl}?op=Insertar`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(data),
         });
         form.reset();
         listarSalas();
+        cargarSelects();
     });
 
     // Editar sala
@@ -74,7 +94,7 @@ document.addEventListener("DOMContentLoaded", () => {
             Capacidad: form.SalaCapacidad.value,
             Tipo: form.SalaTipo.value,
         };
-        await fetch(`${apiUrl}?op=Actualizar`, {
+        await fetch(`${baseUrl}?op=Actualizar`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(data),
@@ -84,21 +104,28 @@ document.addEventListener("DOMContentLoaded", () => {
         btnEliminar.disabled = true;
         btnAgregar.disabled = false;
         listarSalas();
+        cargarSelects();
     });
 
     // Eliminar sala
     btnEliminar.addEventListener("click", async () => {
-        const data = { Id: form.SalaId.value };
-        await fetch(`${apiUrl}?op=Eliminar`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(data),
-        });
-        form.reset();
-        btnEditar.disabled = true;
-        btnEliminar.disabled = true;
-        btnAgregar.disabled = false;
-        listarSalas();
+        const confirmar = confirm("¿Está seguro de que desea eliminar la sala seleccionada?");
+        if (confirmar) {
+            const data = {
+                Id: form.SalaId.value,
+            };
+            await fetch(`${baseUrl}?op=Eliminar`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data),
+            });
+            form.reset();
+            btnEditar.disabled = true;
+            btnEliminar.disabled = true;
+            btnAgregar.disabled = false;
+            listarSalas();
+            cargarSelects();
+        }
     });
 
     // Limpiar formulario
@@ -110,5 +137,6 @@ document.addEventListener("DOMContentLoaded", () => {
         tabla.querySelectorAll("tr").forEach((fila) => fila.classList.remove("selected"));
     });
 
+    // Inicialización
     listarSalas();
 });
